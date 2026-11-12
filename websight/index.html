@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Plant Care</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<section id="login" class="center">
+  <div class="card login-card">
+    <h1>🌱 Smart Plant Care</h1>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button id="btnLogin">Sign in</button>
+    <p id="loginErr" class="err"></p>
+  </div>
+</section>
+
+<div id="app" hidden>
+  <nav id="nav">
+    <h2>🌱 Plant Care</h2>
+    <a data-page="dashboard" class="active">🏠 Dashboard</a>
+    <a data-page="control">💧 Watering</a>
+    <a data-page="history">📜 Pump History</a>
+    <a data-page="notifications">🔔 Alerts</a>
+    <a data-page="settings">⚙️ Settings</a>
+    <button id="btnLogout">Sign out</button>
+  </nav>
+
+  <main>
+    <header>
+      <button id="btnMenu">☰</button>
+      <span id="conn" class="badge off">ESP32 OFFLINE</span>
+    </header>
+
+    <section id="dashboard" class="page">
+      <div id="alertBanner" class="alert-banner" hidden>
+        <span>🚨 <b>Plant alert:</b> <span id="alertBannerTxt"></span></span>
+        <button id="btnNotif">🔔 Enable popup alerts</button>
+      </div>
+      <div class="grid">
+        <div class="card"><h3>Soil moisture</h3><div class="big" id="moist">--%</div>
+          <div class="bar"><div id="moistBar"></div></div>
+          <span id="moistStatus" class="badge"></span></div>
+        <div class="card"><h3>Temperature</h3><div class="big" id="temp">--°C</div></div>
+        <div class="card"><h3>Humidity</h3><div class="big" id="hum">--%</div></div>
+        <div class="card"><h3>Mode</h3><div class="big" id="modeTxt">--</div></div>
+        <div class="card"><h3>Pump Status</h3><div class="big" id="pumpTxt">--</div></div>
+                <div class="card"><h3>Waterings this slot</h3><div class="big" id="slotCnt">--</div><div class="hint" id="slotName">--</div></div>
+        <div class="card"><h3>Last watering</h3><div id="lastWater">--</div></div>
+        <div class="card"><h3>Alerts</h3><div class="big" id="alertCount">0</div></div>
+      </div>
+      <div class="card">
+        <h3>🌿 Money Plant Care</h3>
+        <p class="hint">Ideal for Money Plant: soil moisture 40–70%, temperature 18–30 °C, humidity 40–60%.</p>
+        <div class="care-row"><div class="care-head"><b>💧 Soil moisture</b><span id="careSoilBadge" class="badge">--</span></div><p id="careSoilTip" class="care-tip">Waiting for data…</p></div>
+        <div class="care-row"><div class="care-head"><b>🌡️ Temperature</b><span id="careTempBadge" class="badge">--</span></div><p id="careTempTip" class="care-tip">Waiting for data…</p></div>
+        <div class="care-row"><div class="care-head"><b>💨 Humidity</b><span id="careHumBadge" class="badge">--</span></div><p id="careHumTip" class="care-tip">Waiting for data…</p></div>
+        <h3 style="margin-top:18px">How to grow a healthy Money Plant</h3>
+        <ul class="tips">
+          <li>Light: bright, indirect light. Direct afternoon sun burns the leaves.</li>
+          <li>Water: only when the top 2–3 cm of soil is dry. Overwatering causes root rot.</li>
+          <li>Pot: use a pot with drainage holes and well-draining soil.</li>
+          <li>Leaves: wipe dust off monthly and rotate the pot so it grows evenly.</li>
+          <li>Feeding: a diluted liquid fertilizer once a month in the growing season.</li>
+        </ul>
+      </div> 
+      <div class="card"><canvas id="chart" height="110"></canvas></div>
+    </section>
+
+    <section id="control" class="page" hidden>
+      <div class="card">
+        <h3>Mode</h3>
+        <p id="cmdMsg" class="hint">No command sent yet.</p>
+        <button data-mode="AUTO">AUTO</button>
+        <button data-mode="MANUAL">MANUAL</button>
+        <p>Requested pump command: <b id="reqCmd">--</b> | Confirmed pump: <b id="confPump">--</b></p>
+        <button id="btnStart">Start pump</button>
+        <button id="btnStop">Stop pump</button>
+        <p class="hint">Start/Stop work only in MANUAL. The ESP32 still stops the pump at target moisture.</p>
+      </div>
+    </section>
+
+        <section id="history" class="page" hidden>
+      <div class="card scroll">
+        <table id="histTable">
+          <thead><tr><th>Start</th><th>End</th><th>Duration</th><th>Mode</th><th>Before</th><th>After</th><th>Result</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="notifications" class="page" hidden>
+      <div class="card">
+        <p class="hint">These are in-app notifications stored in Firebase. Browser push notifications need extra setup and are not included.</p>
+        <ul id="notifList"></ul>
+      </div>
+    </section>
+
+    <section id="settings" class="page" hidden>
+      <div class="card">
+        <label>Target moisture % <input id="sTarget" type="number" min="20" max="100"></label>
+        <label>Low moisture alert % <input id="sLow" type="number" min="0" max="100"></label>
+
+        <h3>AUTO watering time</h3>
+
+        <div class="time-row">
+          <div class="time-title">🌅 Morning watering</div>
+          <div class="time-pair">
+            <label>From <input id="sW1S" type="time"></label>
+            <span class="to">to</span>
+            <label>To <input id="sW1E" type="time"></label>
+          </div>
+        </div>
+
+        <div class="time-row">
+          <div class="time-title">🌇 Evening watering</div>
+          <div class="time-pair">
+            <label>From <input id="sW2S" type="time"></label>
+            <span class="to">to</span>
+            <label>To <input id="sW2E" type="time"></label>
+          </div>
+        </div>
+
+        <label>Max waterings per time slot <input id="sCnt" type="number" min="1"></label>
+        <label>Max pump runtime (seconds) <input id="sMax" type="number" min="1" max="600"></label>
+        <label>Temperature warning °C <input id="sTemp" type="number" min="0" max="60"></label>
+        <button id="btnSave">Save</button>
+        <p id="saveMsg"></p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
