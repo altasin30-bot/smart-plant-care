@@ -228,9 +228,9 @@ These are general guidelines and the sensor values are approximate.
 ## Author
 
 **M A Nabihan Tasin**
-Student ID: 0432320005101182
+Student ID: 0432320005101182| 
 **Md. Khairul Islam**
-Student ID: 0432320005101199
+Student ID: 0432320005101199| 
 **Sumiya Tabassum**
 Student ID: 0432320005101132| Section: 7C
 Course:Internet Of Thinks
